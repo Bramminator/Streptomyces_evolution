@@ -59,10 +59,10 @@ for(i in evolving_mutation){
   }
 }
 
-pop_name_vector <- c('time', 'seed','type', 'popsize_wt','popsize_mu', 'run')
+pop_name_vector <- c('time', 'seed','type', 'popsize_wt','popsize_mu', 'popsize_se', 'run')
 cost_name_vector <- c('time', 'seed', 'type', 'cost','run')
 
-popframe_em <- data.frame(time=numeric(0),seed=character(0),type=character(0),popsize_wt=numeric(0),popsize_mu=numeric(0),run=character(0))
+popframe_em <- data.frame(time=numeric(0),seed=character(0),type=character(0),popsize_wt=numeric(0),popsize_mu=numeric(0),popsize_se=numeric(0),run=character(0))
 
 for(i in popfile_em_vector){
   temp <- fread(i)
@@ -70,15 +70,16 @@ for(i in popfile_em_vector){
   timepoint <- as.numeric(gsub('.*type|\\.txt$', '', head(i)))
   popsize_wt <- sum(temp$type == "1")
   popsize_mu <- sum(temp$type == "2")
+  popsize_se <- sum(temp$type == "3")
   type <- as.character('evolving mutation')
   run <- as.character(str_match(i, 'bramve//(.*?)/grid'))
   seed <- as.character(str_match(run,'[0-9]+[^r]*$'))
-  run_values <- data.frame(timepoint,seed[2],type,popsize_wt,popsize_mu,run[2])
+  run_values <- data.frame(timepoint,seed[2],type,popsize_wt,popsize_mu,popsize_se,run[2])
   colnames(run_values) <- pop_name_vector
   popframe_em <- bind_rows(popframe_em,run_values)
 }
 
-popframe_nem <- data.frame(time=numeric(0),seed=character(0),type=character(0),popsize_wt=numeric(0),popsize_mu=numeric(0),run=character(0))
+popframe_nem <- data.frame(time=numeric(0),seed=character(0),type=character(0),popsize_wt=numeric(0),popsize_mu=numeric(0),popsize_se=numeric(0),run=character(0))
 
 for(i in popfile_nem_vector){
   temp <- fread(i)
@@ -86,10 +87,11 @@ for(i in popfile_nem_vector){
   timepoint <- as.numeric(gsub('.*type|\\.txt$', '', head(i)))
   popsize_wt <- sum(temp$type == "1")
   popsize_mu <- sum(temp$type == "2")
+  popsize_se <- sum(temp$type == "3")
   type <- as.character("no evolving mutation")
   run <- as.character(str_match(i, 'bramve//(.*?)/grid'))
   seed <- as.character(str_match(run,'[0-9]+[^r]*$'))
-  run_values <- data.frame(timepoint,seed[2],type,popsize_wt,popsize_mu,run[2])
+  run_values <- data.frame(timepoint,seed[2],type,popsize_wt,popsize_mu,popsize_se,run[2])
   colnames(run_values) <- pop_name_vector
   popframe_nem <- bind_rows(popframe_nem,run_values)
 }
@@ -130,18 +132,18 @@ costframe <- bind_rows(costframe_em,costframe_nem)
 
 pop_cost_frame <- merge(popframe,costframe)
 
-long_pop_cost_frame <- gather(pop_cost_frame,key = 'wt_or_mu', value = 'popsize',c(popsize_wt,popsize_mu))
+long_pop_cost_frame <- gather(pop_cost_frame,key = 'wt_mu_se', value = 'popsize',c(popsize_wt,popsize_mu,popsize_se))
 
 long_pop_cost_frame %>%
   filter(time %in% seq(86002500, 95002500, by = 1000000)) %>%
-  ggplot(aes(x = popsize, y = cost, color = interaction(wt_or_mu,type))) +
+  ggplot(aes(x = popsize, y = cost, color = interaction(wt_mu_se,type))) +
   geom_point(shape = 16, size = 3) +
   geom_text(aes(label = seed, hjust = -1)) +
   geom_smooth(method = "lm") +
   ggtitle('cost vs popsize quarter cycle') +
   theme_bw() +
     
-ggsave('~/Documents/strepto/scatter_popsize_cost_em_nem/scatter_2500_revisited.png',
+ggsave('~/Documents/strepto/scatter_popsize_cost_em_nem/scatter_2500_sensitives.png',
       height = 210,
       width  = 297,
       units= 'mm',
@@ -149,14 +151,14 @@ ggsave('~/Documents/strepto/scatter_popsize_cost_em_nem/scatter_2500_revisited.p
 
 long_pop_cost_frame %>%
   filter(time %in% seq(86005000, 95005000, by = 1000000)) %>%
-  ggplot(aes(x = popsize, y = cost, color = interaction(wt_or_mu,type))) +
+  ggplot(aes(x = popsize, y = cost, color = interaction(wt_mu_se,type))) +
   geom_point(shape = 16, size = 3) +
   geom_text(aes(label=seed, hjust = -1))+
   geom_smooth(method = "lm") +
   ggtitle('cost vs popsize half cycle') +
   theme_bw() +
 
-ggsave('~/Documents/strepto/scatter_popsize_cost_em_nem/scatter_5000_revisited.png',
+ggsave('~/Documents/strepto/scatter_popsize_cost_em_nem/scatter_5000_sensitives.png',
        height = 210,
        width  = 297,
        units= 'mm',
@@ -164,14 +166,14 @@ ggsave('~/Documents/strepto/scatter_popsize_cost_em_nem/scatter_5000_revisited.p
 
 long_pop_cost_frame %>%
   filter(time %in% seq(86007500, 95007500, by = 1000000)) %>%
-  ggplot(aes(x = popsize, y = cost, color = interaction(wt_or_mu,type))) +
+  ggplot(aes(x = popsize, y = cost, color = interaction(wt_mu_se,type))) +
   geom_point(shape = 16, size = 3) +
   geom_text(aes(label = seed, hjust = -1)) +
   geom_smooth(method = "lm") +
   ggtitle('cost vs popsize three-quarter cycle') +
   theme_bw() +
 
-ggsave('~/Documents/strepto/scatter_popsize_cost_em_nem/scatter_7500_revisited.png',
+ggsave('~/Documents/strepto/scatter_popsize_cost_em_nem/scatter_7500_sensitives.png',
        height = 210,
        width  = 297,
        units= 'mm',
